@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include <time.h>
 
 #define W  12
 #define H  12
@@ -66,17 +67,43 @@ void draw()
 	SDL_RenderPresent(rend);
 }
 
+
+int right(int i, int j)
+{
+	return (i+j+t)%2;
+}
+
+int left(int i, int j)
+{
+	return (i+j+t)%2 == 0;
+}
+
 int update_cell(int i, int j)
 {
 	if (arr[i][j] == NONE)
 	{
-		if (arr[i-1][j] == BULK)
+		if (arr[i-1][j] == BULK) // падение сверху
 			return BULK;
+		else if (arr[i-1][j-1] == BULK && // падение слева
+			right(i-1, j-1) &&
+			arr[i][j-1] != NONE)
+			return BULK;			
+		else if (arr[i-1][j+1] == BULK && // падение справа
+			left(i-1, j+1) &&
+			arr[i][j+1] != NONE)
+			return BULK;			
 		else return NONE;
 	}
 	else if (arr[i][j] == BULK)
 	{
-		if (arr[i+1][j] == NONE)
+		if (arr[i+1][j] == NONE) return NONE; // падение вниз
+		else if (arr[i+1][j-1] == NONE && // падение влево 
+			left(i, j) &&
+			arr[i][j-1] != BULK)
+			return NONE;
+		else if (arr[i+1][j+1] == NONE && // падение вправо
+			right(i, j) &&
+			arr[i][j+1] != BULK)
 			return NONE;
 		else return BULK;
 	}
@@ -85,8 +112,12 @@ int update_cell(int i, int j)
 
 void update()
 {
+	clock_t t1 = clock();
+	
 	int buf[H][W];
 	
+	clock_t t2 = clock();
+		
 	for (int i = 0; i < H; i++)
 	{
 		for (int j = 0; j < W; j++)
@@ -95,11 +126,35 @@ void update()
 		}
 	}
 	
+	clock_t t3 = clock();
+	
+	int s_none = 0;
+	int s_solid = 0;
+	int s_bulk = 0;
+	
 	for (int i = 0; i < H; i++)
+	{
 		for (int j = 0; j < H; j++)
+		{
+			if (buf[i][j] == NONE) s_none++;  
+			else if (buf[i][j] == SOLID) s_solid++;  
+			else if (buf[i][j] == BULK) s_bulk++; 
+
 			arr[i][j] = buf[i][j];
+		}
+	}
+	
+	clock_t t4 = clock();
 	
 	t++;
+
+	float t_1 = (t2-t1)*1000000.0/CLOCKS_PER_SEC;
+	float t_2 = (t3-t2)*1000000.0/CLOCKS_PER_SEC;
+	float t_3 = (t4-t3)*1000000.0/CLOCKS_PER_SEC;
+	
+	printf("%d: NONE: %d, SOLID: %d, BULK: %d\n", t, s_none, s_solid, s_bulk);
+	printf("time: %f, %f, %f\n", t_1, t_2, t_3);
+	
 	return;
 }
 
