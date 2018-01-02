@@ -1,8 +1,8 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
-#define W 12
-#define H 12
+#define W  12
+#define H  12
 #define SZ 32
 
 enum
@@ -66,28 +66,32 @@ void draw()
 	SDL_RenderPresent(rend);
 }
 
+int update_cell(int i, int j)
+{
+	if (arr[i][j] == NONE)
+	{
+		if (arr[i-1][j] == BULK)
+			return BULK;
+		else return NONE;
+	}
+	else if (arr[i][j] == BULK)
+	{
+		if (arr[i+1][j] == NONE)
+			return NONE;
+		else return BULK;
+	}
+	else return SOLID;
+}
+
 void update()
 {
 	int buf[H][W];
 	
 	for (int i = 0; i < H; i++)
-		for (int j = 0; j < H; j++)
-			buf[i][j] = arr[i][j];	
-	
-	for (int i = 0; i < H; i++)
 	{
 		for (int j = 0; j < W; j++)
 		{
-			if (arr[i][j] == NONE)
-			{
-				if (arr[i-1][j] == BULK)
-					buf[i][j] = BULK;
-			}
-			else if (arr[i][j] == BULK)
-			{
-				if (arr[i+1][j] == NONE)
-					buf[i][j] = NONE;
-			}
+			buf[i][j] = update_cell(i, j);
 		}
 	}
 	
